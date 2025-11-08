@@ -1,0 +1,21 @@
+.node-details {
+    display: inline-block;
+    padding: 10px;
+    border: 1px solid burlywood;
+    margin: 10px;
+    vertical-align: top;
+
+    .tag{
+        
+    }
+    .tag-key{
+        display: inline-block;
+        font-weight: bold;
+        margin-right: 5px;
+        vertical-align: top;
+    }
+
+    .tag-value {
+        display: inline-block;
+    }
+}

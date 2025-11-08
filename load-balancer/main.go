@@ -33,6 +33,12 @@ func registerNodeHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func getAllNodeDetails(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(getNodeRegistry())
+}
+
 func getValueHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	key := query.Get("key")
@@ -85,12 +91,33 @@ func main() {
 	// Register handlers for specific routes
 	http.HandleFunc("/", rootHandler)
 	http.HandleFunc("/register-node", registerNodeHandler)
+	http.HandleFunc("/nodes", getAllNodeDetails)
 	http.HandleFunc("/get", getValueHandler)
 	http.HandleFunc("/put", putValueHandler)
 	http.HandleFunc("/delete", deleteValueHandler)
 
+	handler := withCORS(http.DefaultServeMux)
+
 	// Start the HTTP server
 	port := ":8080"
 	fmt.Printf("Server starting on port %s\n", port)
-	log.Fatal(http.ListenAndServe(port, nil)) // Use nil for default ServeMux
+	log.Fatal(http.ListenAndServe(port, handler)) // Use nil for default ServeMux
+}
+
+func withCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*") // or specific origin
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		// Handle preflight requests
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Call the next handler
+		next.ServeHTTP(w, r)
+	})
 }

@@ -1,0 +1,21 @@
+.cache-details {
+    .node-list{
+        padding: 20px;
+    }
+
+    .toggle-monitor-button {
+        padding: 5px;
+        border: 1px solid burlywood;
+        display: inline-block;
+        cursor: pointer;
+        font-weight: bold;
+
+        &.on {
+            background-color: red;
+        }
+
+        &.off {
+            background-color: green;
+        }
+    }
+}

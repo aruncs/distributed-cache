@@ -47,3 +47,12 @@ func findTargetNodeIdHash(keyHash string) string {
 	}
 	return ""
 }
+
+func getNodeRegistry() []NodeDetails {
+	var nodes []NodeDetails
+
+	for _, details := range nodeRegistry {
+		nodes = append(nodes, details)
+	}
+	return nodes
+}

@@ -10,6 +10,10 @@ func getValue(key string) interface{} {
 	return store[key]
 }
 
+func deleteValue(key string) {
+	delete(store, key)
+}
+
 func getStore() map[string]interface{} {
 	return store
 }

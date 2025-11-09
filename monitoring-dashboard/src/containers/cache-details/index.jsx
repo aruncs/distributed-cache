@@ -16,14 +16,14 @@ class CacheDetails extends React.Component {
         
     }
     async componentDidUpdate(prevProp, prevState) {
-        if (prevState.monitoring == false && this.state.monitoring == true) {
+        if (prevState.monitoring === false && this.state.monitoring === true) {
             this.timerHandle = setInterval(async ()=>{
                 let nodes = await this.fetchServerDetails()
                 this.setState({
                     nodes
                 })
             }, 2000)
-        } else if(prevState.monitoring == true && this.state.monitoring == false) {
+        } else if(prevState.monitoring === true && this.state.monitoring === false) {
             clearInterval(this.timerHandle)
         }
     }
@@ -36,7 +36,6 @@ class CacheDetails extends React.Component {
     render() {
         
         let {nodes, monitoring} = this.state
-        console.log("node: ", nodes)
         let switchLabel = monitoring ? "Turn Off" : "Turn On"
 
         return (
@@ -44,7 +43,7 @@ class CacheDetails extends React.Component {
                 <div className={`toggle-monitor-button ${monitoring ? 'on' : 'off'}`} onClick={this.handleToggleMonitor}>{switchLabel}</div>
                 <div className="node-list">
                     {nodes && nodes.map((node)=>{
-                    return (<NodeDetails id={node.id} name={node.name} data={node.data}></NodeDetails>)
+                    return (<NodeDetails key={node.id} id={node.id} name={node.name} data={node.data}></NodeDetails>)
                 })}
                 </div>
             </div>
@@ -54,13 +53,23 @@ class CacheDetails extends React.Component {
     async fetchServerDetails() {
         let nodes = await makeHttpGet("http://localhost:8080/nodes")
         let updatedNodes = []
+        if (nodes === null) {
+            return []
+        }
         for(let i=0; i < nodes.length; i++){
             let node = nodes[i]
             let data = await makeHttpGet(node.address + "/data")
-            console.log("data is ", data)
             node.data = data
             updatedNodes.push(node)
         }
+
+        updatedNodes.sort((a, b) => {
+            if (a.id > b.id) {
+                return 1
+            } else {
+                return -1
+            }
+        })
         return updatedNodes
     }
 }

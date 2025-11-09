@@ -12,6 +12,10 @@ type Data struct {
 	Value interface{} `json:"value"`
 }
 
+type Key struct {
+	Key string `json:"key"`
+}
+
 // handler for the root path "/"
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to the root page!")
@@ -43,7 +47,7 @@ func getValueHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	key := query.Get("key")
 
-	address := getNodeAddress(key)
+	address := getTargetNodeAddress(key)
 	url := fmt.Sprintf("%s/get?key=%s", address, key)
 	resp, err := fetchURL(url)
 
@@ -69,9 +73,9 @@ func putValueHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	address := getNodeAddress(data.Key)
+	address := getTargetNodeAddress(data.Key)
 	url := fmt.Sprintf("%s/put", address)
-	resp, err := postJSON(url, data.Value)
+	resp, err := postJSON(url, data)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -84,7 +88,25 @@ func putValueHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteValueHandler(w http.ResponseWriter, r *http.Request) {
+	var data Key
 
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	address := getTargetNodeAddress(data.Key)
+	url := fmt.Sprintf("%s/put", address)
+	resp, err := postJSON(url, data)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 func main() {
@@ -121,3 +143,11 @@ func withCORS(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// func removeFaultyNodes() {
+// 	for _, nodeDetails := range nodeRegistry {
+// 		targetNode := getTargetNodeAddress(nodeDetails.Address)
+
+// 	}
+// 	removeKeyFromAvailableServers(NodeDetails)
+// }

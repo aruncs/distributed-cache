@@ -12,7 +12,7 @@ echo "🚀 Starting load balancer..."
 ./bin/load-balancer &
 PID1=$!
 
-
+echo "🚀 Started load balancer... Process id $PID1"
 echo "Building nodes..."
 cd ../node
 go build -o ../bin/node .
@@ -37,6 +37,30 @@ npm run start &
 PID5=$!
 
 # Cleanup when user stops the script
-trap "echo '🛑 Stopping...'; kill $PID1 $PID2 $PID3 $PID4 $PID5" EXIT
+#trap "echo '🛑 Stopping...'; kill $PID1 $PID2 $PID3 $PID4 $PID5" EXIT
+
+cleanup() {
+
+#!/bin/bash
+
+# List of ports to kill
+PORTS=(8080 8090 8091 8092 3000)
+
+echo "🔍 Checking for processes on ports: ${PORTS[*]}"
+
+for PORT in "${PORTS[@]}"; do
+  # Find process ID (PID) using lsof
+  PID=$(lsof -ti tcp:$PORT)
+
+  if [ -n "$PID" ]; then
+    echo "⚠️  Killing process $PID on port $PORT"
+    kill -9 $PID
+  else
+    echo "✅ No process found on port $PORT"
+  fi
+done
+}
+
+trap cleanup EXIT INT TERM
 
 wait

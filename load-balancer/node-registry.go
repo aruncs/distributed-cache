@@ -32,7 +32,7 @@ func AddNode(details NodeDetails) NodeDetails {
 	return details
 }
 
-func getNodeAddress(key string) string {
+func getTargetNodeAddress(key string) string {
 	var hash = getHashValue(key)
 	nodeIdHash := findTargetNodeIdHash(hash)
 	return nodeRegistry[nodeIdHash].Address
@@ -42,10 +42,9 @@ func findTargetNodeIdHash(keyHash string) string {
 	for i := 0; i < len(availableServers); i++ {
 		if availableServers[i] >= keyHash {
 			return availableServers[i]
-
 		}
 	}
-	return ""
+	return availableServers[0]
 }
 
 func getNodeRegistry() []NodeDetails {
@@ -55,4 +54,20 @@ func getNodeRegistry() []NodeDetails {
 		nodes = append(nodes, details)
 	}
 	return nodes
+}
+
+func removeNode(nodeId string) {
+	hashKey := getHashValue(nodeId)
+	removeKeyFromAvailableServers(hashKey)
+}
+
+func removeKeyFromAvailableServers(key string) {
+
+	for i, k := range availableServers {
+		if k == key {
+			// Remove element at index i
+			availableServers = append(availableServers[:i], availableServers[i+1:]...)
+			break
+		}
+	}
 }

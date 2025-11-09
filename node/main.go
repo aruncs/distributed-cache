@@ -13,6 +13,12 @@ type Data struct {
 	Value interface{} `json:"value"`
 }
 
+type Key struct {
+	Key string `json:"key"`
+}
+
+var isOOR bool = false
+
 func main() {
 
 	if len(os.Args) < 2 {
@@ -24,9 +30,10 @@ func main() {
 
 	port := ":" + os.Args[1]
 	// Register handlers for specific routes
+	http.HandleFunc("/health-check", getHealthCheckHandler)
 	http.HandleFunc("/get", getValueHandler)
 	http.HandleFunc("/put", putValueHandler)
-	//http.HandleFunc("/delete", deleteValueHandler)
+	http.HandleFunc("/delete", deleteValueHandler)
 	http.HandleFunc("/data", getDataHandler)
 
 	// Start the HTTP server
@@ -59,6 +66,32 @@ func putValueHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode("ok")
 
+}
+
+func deleteValueHandler(w http.ResponseWriter, r *http.Request) {
+	var data Key
+
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	deleteValue(data.Key)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("ok")
+}
+
+func getHealthCheckHandler(w http.ResponseWriter, r *http.Request) {
+
+	if isOOR {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		json.NewEncoder(w).Encode("not ok")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode("ok")
 }
 
 func getDataHandler(w http.ResponseWriter, r *http.Request) {
